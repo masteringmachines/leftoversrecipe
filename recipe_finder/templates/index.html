@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantry — Recipe Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --parchment: #ede8dc;
+    --ink: #1c1a16;
+    --muted: #7a7060;
+    --accent: #c84b2f;
+    --accent-pale: #f5e8e4;
+    --green: #3a6b45;
+    --green-pale: #e8f0ea;
+    --border: #d4cfc4;
+    --shadow: rgba(28,26,22,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    background: var(--ink);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 56px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: var(--cream);
+    letter-spacing: 0.02em;
+  }
+
+  .logo em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .db-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    border: 1px solid #3a3830;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  /* ---- HERO ---- */
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 4rem 2rem 2rem;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.65;
+    max-width: 500px;
+    margin: 0 auto 2rem;
+  }
+
+  /* ---- SEARCH BOX ---- */
+  .search-wrap {
+    max-width: 680px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+  }
+
+  .search-box {
+    width: 100%;
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 1.1rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .search-box:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-pale);
+  }
+
+  .search-box::placeholder { color: var(--muted); }
+
+  .search-btn {
+    margin-top: 0.75rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0.85rem 2.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .search-btn:hover { background: #b33e25; }
+  .search-btn:active { transform: scale(0.98); }
+
+  /* ---- FILTERS ---- */
+  .filters {
+    max-width: 680px;
+    margin: 0 auto 3rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .filter-select, .filter-input {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.45rem 0.75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .filter-select:focus, .filter-input:focus { border-color: var(--accent); }
+  .filter-input { width: 100px; }
+
+  /* ---- EXAMPLES ---- */
+  .examples {
+    max-width: 680px;
+    margin: -1.5rem auto 3rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .example-pill {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .example-pill:hover {
+    background: var(--accent-pale);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ---- RESULTS ---- */
+  .results-area {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  .results-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .results-count {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: var(--ink);
+  }
+
+  .results-query {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* ---- RECIPE CARD ---- */
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 1px 4px var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+    animation: cardIn 0.35s ease both;
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 20px rgba(28,26,22,0.12);
+    transform: translateY(-1px);
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.10s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.20s; }
+  .card:nth-child(5) { animation-delay: 0.25s; }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .rank-badge {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
+
+  .card-header:hover .rank-badge { background: var(--accent); }
+
+  .card-meta { flex: 1; }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  .tag-cuisine { background: var(--parchment); color: var(--muted); }
+  .tag-time { background: var(--green-pale); color: var(--green); }
+
+  .score-bar {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .score-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .score-track {
+    width: 80px;
+    height: 3px;
+    background: var(--parchment);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  /* ---- CARD BODY (collapsed) ---- */
+  .card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+
+  .card.open .card-body { max-height: 1000px; }
+
+  .card-inner {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 560px) { .card-inner { grid-template-columns: 1fr; } }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+
+  .ingredient-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .ingredient-list li {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 3px 8px;
+    font-size: 0.78rem;
+    color: var(--ink);
+  }
+
+  .ingredient-list li.missing {
+    background: var(--accent-pale);
+    border-color: #e8bdb5;
+    color: var(--accent);
+  }
+
+  .instructions-text {
+    font-size: 0.83rem;
+    line-height: 1.7;
+    color: #4a4540;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    grid-column: 1 / -1;
+  }
+
+  .missing-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    background: var(--accent-pale);
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  .source-link {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-decoration: none;
+    margin-left: auto;
+  }
+
+  .source-link:hover { color: var(--accent); }
+
+  /* ---- STATES ---- */
+  .state-panel {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+
+  .state-panel .icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .state-panel p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .loading-dots span {
+    animation: blink 1.4s infinite;
+    font-family: 'DM Mono', monospace;
+    font-size: 1.5rem;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0; }
+    40% { opacity: 1; }
+  }
+
+  /* ---- DIVIDER ---- */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    max-width: 680px;
+    margin: 0 auto 2rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Pantry <em>&</em> Pot</div>
+  <div class="db-badge" id="dbBadge">loading index…</div>
+</header>
+
+<section class="hero">
+  <p class="hero-eyebrow">Vector Similarity Search</p>
+  <h1>What's in your <em>pantry?</em></h1>
+  <p>Enter whatever ingredients you have on hand — we'll find the closest matching recipes using semantic vector search.</p>
+</section>
+
+<div class="search-wrap">
+  <input
+    type="text"
+    class="search-box"
+    id="searchInput"
+    placeholder="chicken, garlic, soy sauce, honey, ginger…"
+    autocomplete="off"
+    spellcheck="false"
+  >
+  <br>
+  <button class="search-btn" id="searchBtn" onclick="doSearch()">Find Recipes →</button>
+</div>
+
+<div class="examples">
+  <span class="filter-label">Try:</span>
+  <span class="example-pill" onclick="setQuery('chicken, garlic, soy sauce, honey')">chicken, garlic, soy sauce, honey</span>
+  <span class="example-pill" onclick="setQuery('pasta, garlic, olive oil, parmesan')">pasta, garlic, olive oil, parmesan</span>
+  <span class="example-pill" onclick="setQuery('eggs, butter, flour, sugar')">eggs, butter, flour, sugar</span>
+  <span class="example-pill" onclick="setQuery('tomato, basil, mozzarella')">tomato, basil, mozzarella</span>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Filters:</span>
+  <select class="filter-select" id="cuisineFilter">
+    <option value="">All cuisines</option>
+  </select>
+  <input type="number" class="filter-input" id="maxTime" placeholder="Max mins" min="1" max="480">
+  <select class="filter-select" id="topK">
+    <option value="5">5 results</option>
+    <option value="8">8 results</option>
+    <option value="12">12 results</option>
+  </select>
+</div>
+
+<hr class="divider">
+
+<div class="results-area">
+  <div id="resultsContainer">
+    <div class="state-panel">
+      <span class="icon">🥕</span>
+      <p>Enter your ingredients above to discover recipes</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+async function loadMeta() {
+  try {
+    const res = await fetch(`${API}/api/meta`);
+    const data = await res.json();
+    document.getElementById('dbBadge').textContent =
+      `${data.total_recipes.toLocaleString()} recipes indexed`;
+
+    const sel = document.getElementById('cuisineFilter');
+    (data.cuisines || []).forEach(c => {
+      if (c && c !== 'Unknown') {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      }
+    });
+  } catch {
+    document.getElementById('dbBadge').textContent = 'index offline';
+  }
+}
+
+function setQuery(q) {
+  document.getElementById('searchInput').value = q;
+  doSearch();
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+async function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+
+  const cuisine = document.getElementById('cuisineFilter').value;
+  const maxTime = document.getElementById('maxTime').value;
+  const topK = document.getElementById('topK').value;
+
+  let url = `/api/search?q=${encodeURIComponent(q)}&top_k=${topK}`;
+  if (cuisine) url += `&cuisine=${encodeURIComponent(cuisine)}`;
+  if (maxTime) url += `&max_time=${maxTime}`;
+
+  showLoading();
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) { showError(data.error); return; }
+    renderResults(data);
+  } catch (e) {
+    showError('Could not reach the server. Is it running?');
+  }
+}
+
+function showLoading() {
+  document.getElementById('resultsContainer').innerHTML = `
+    <div class="state-panel">
+      <div class="loading-dots">
+        <span>.</span><span>.</span><span>.</span>
+      </div>
+      <p>Searching vector space</p>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('resultsContainer').innerHTML = `
+    <div class="state-panel">
+      <span class="icon">⚠️</span>
+      <p>${msg}</p>
+    </div>`;
+}
+
+function renderResults(data) {
+  const container = document.getElementById('resultsContainer');
+
+  if (!data.results.length) {
+    container.innerHTML = `<div class="state-panel"><span class="icon">🔍</span><p>No recipes found — try broader ingredients or remove filters.</p></div>`;
+    return;
+  }
+
+  const header = `
+    <div class="results-header">
+      <div class="results-count">${data.total} recipes found</div>
+      <div class="results-query">query: ${escHtml(data.query)}</div>
+    </div>`;
+
+  const cards = data.results.map(r => buildCard(r)).join('');
+  container.innerHTML = header + cards;
+}
+
+function buildCard(r) {
+  const scoreW = Math.round(r.score * 100);
+  const timeTag = r.prep_time ? `<span class="tag tag-time">⏱ ${r.prep_time}m</span>` : '';
+  const cuisineTag = r.cuisine && r.cuisine !== 'Unknown'
+    ? `<span class="tag tag-cuisine">${escHtml(r.cuisine)}</span>` : '';
+
+  // Ingredients with missing highlighted
+  const missingSet = new Set(r.missing_ingredients.map(m => m.toLowerCase()));
+  const ingItems = r.ingredients.map(ing => {
+    const cls = missingSet.has(ing.toLowerCase()) ? 'missing' : '';
+    return `<li class="${cls}">${escHtml(ing)}</li>`;
+  }).join('');
+
+  const missingNote = r.missing_ingredients.length
+    ? `<span class="missing-count">Missing ${r.missing_ingredients.length} ingredient${r.missing_ingredients.length > 1 ? 's' : ''}</span>`
+    : `<span class="missing-count" style="background:var(--green-pale);color:var(--green)">✓ You have everything</span>`;
+
+  const sourceLink = r.source_url
+    ? `<a class="source-link" href="${escHtml(r.source_url)}" target="_blank" rel="noopener">Source ↗</a>` : '';
+
+  return `
+    <div class="card" id="card-${r.rank}">
+      <div class="card-header" onclick="toggleCard(${r.rank})">
+        <div class="rank-badge">${r.rank}</div>
+        <div class="card-meta">
+          <div class="card-title">${escHtml(r.title)}</div>
+          <div class="card-tags">${cuisineTag}${timeTag}</div>
+        </div>
+        <div class="score-bar">
+          <div class="score-num">${(r.score * 100).toFixed(1)}%</div>
+          <div class="score-track">
+            <div class="score-fill" style="width:${scoreW}%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-inner">
+          <div>
+            <div class="section-label">Ingredients</div>
+            <ul class="ingredient-list">${ingItems}</ul>
+          </div>
+          <div>
+            <div class="section-label">Preparation</div>
+            <p class="instructions-text">${escHtml(r.instructions)}</p>
+          </div>
+          <div class="card-footer">
+            ${missingNote}
+            ${sourceLink}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleCard(rank) {
+  const el = document.getElementById(`card-${rank}`);
+  el.classList.toggle('open');
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+loadMeta();
+</script>
+</body>
+</html>
